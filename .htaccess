@@ -1,26 +1,7 @@
-# Встановлюємо кодування
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.php [L,QSA]
+
+# Встановлення кодування UTF-8
 AddDefaultCharset UTF-8
-
-# Забороняємо прямий доступ до файлів PHP у папках assets (крім index.php)
-<FilesMatch "\.(php|inc|config)$">
-    Order Deny,Allow
-    Deny from all
-</FilesMatch>
-
-# Вмикаємо стиснення файлів (gzip)
-<IfModule mod_deflate.c>
-    AddOutputFilterByType DEFLATE text/html text/css text/javascript application/javascript application/json application/xml
-</IfModule>
-
-# Перенаправлення помилки 404 на кастомну сторінку
-ErrorDocument 404 /404.php
-
-# Включення дружніх URL (якщо в майбутньому буде потрібно)
-<IfModule mod_rewrite.c>
-    RewriteEngine On
-
-    # Приклад для перенаправлення всіх запитів на index.php
-    RewriteCond %{REQUEST_FILENAME} !-f
-    RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteRule ^(.*)$ index.php [L,QSA]
-</IfModule>
