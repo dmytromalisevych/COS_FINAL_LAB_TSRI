@@ -1,2 +1,4 @@
 <?php
-define('CONFIG_QRCODE_DIR', 'assets/qrcodes');
+define('QR_CODES_DIR', 'assets/qrcodes/');
+
+define('BASE_URL', '/'); 
