@@ -20,6 +20,26 @@ if ($formHandler->isValid()) {
     $generator->generate($formHandler->getData(), $formHandler->getSize(), $filePath);
 }
 
+$storage = new QRCodeStorage(QR_CODES_DIR);
+$generator = new QRCodeGenerator($storage);
+
+$qrCodeUrl = null;
+$errorMessage = null;
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    try {
+        $formData = $formHandler->validateFormData($_POST);
+        $qrCodeUrl = $generator->generateQRCode(
+            $formData['text'],
+            $formData['size'],
+            $formData['foreground_color'],
+            $formData['background_color']
+        );
+    } catch (Exception $e) {
+        $errorMessage = $e->getMessage();
+    }
+}
+    
 ?>
 
 <!DOCTYPE html>
@@ -29,7 +49,6 @@ if ($formHandler->isValid()) {
     <title>QR Code Generator</title>
     <link rel="stylesheet" type="text/css" href="assets/css/style.css">
     <style>
-        /* Додаткові стилі */
         body {
             background: linear-gradient(135deg, #6E7FCA, #B100FF);
             color: #333;
@@ -140,27 +159,49 @@ if ($formHandler->isValid()) {
 </head>
 <body>
 <div class="container">
-    <form action="" method="post">
         <h1>QR Code Generator</h1>
-        <label>Enter The Text or URL</label>
-        <input type="text" name="data" value="<?= htmlspecialchars($formHandler->getData()) ?>" placeholder="Enter your data">
-        <label>Select QR Code Size</label>
-        <select name="size">
-            <option value="500">Small (500x500)</option>
-            <option value="750">Medium (750x750)</option>
-            <option value="1000">Large (1000x1000)</option>
-        </select>
-        <button type="submit">GENERATE</button>
-    </form>
-    <div class="qr">
-        <?php if ($formHandler->isValid()): ?>
-            <h2>Here is your QR code:</h2>
-            <img src="<?= $filePath ?>" alt="QR Code"><br>
-            <a href="<?= $filePath ?>" download>Download this QR Code</a>
-        <?php else: ?>
-            <br>No data received!
+        
+        <?php if ($errorMessage): ?>
+            <div class="error"><?php echo htmlspecialchars($errorMessage); ?></div>
+        <?php endif; ?>
+        
+        <form method="post">
+            <div class="form-group">
+                <label for="text">Enter Text or URL:</label>
+                <textarea id="text" name="text" rows="4" required><?php echo isset($_POST['text']) ? htmlspecialchars($_POST['text']) : ''; ?></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="size">Select Size:</label>
+                <select id="size" name="size">
+                    <option value="small" <?php echo (isset($_POST['size']) && $_POST['size'] === 'small') ? 'selected' : ''; ?>>Small (500x500)</option>
+                    <option value="medium" <?php echo (isset($_POST['size']) && $_POST['size'] === 'medium') ? 'selected' : ''; ?>>Medium (750x750)</option>
+                    <option value="large" <?php echo (isset($_POST['size']) && $_POST['size'] === 'large') ? 'selected' : ''; ?>>Large (1000x1000)</option>
+                </select>
+            </div>
+        
+            <div class="form-group color-selectors">
+                <div class="color-field">
+                    <label for="foreground_color">QR Code Color:</label>
+                    <input type="color" id="foreground_color" name="foreground_color" value="<?php echo isset($_POST['foreground_color']) ? htmlspecialchars($_POST['foreground_color']) : '#000000'; ?>">
+                </div>
+                
+                <div class="color-field">
+                    <label for="background_color">Background Color:</label>
+                    <input type="color" id="background_color" name="background_color" value="<?php echo isset($_POST['background_color']) ? htmlspecialchars($_POST['background_color']) : '#FFFFFF'; ?>">
+                </div>
+            </div>
+            
+            <button type="submit" class="generate-btn">Generate QR Code</button>
+        </form>
+        
+        <?php if ($qrCodeUrl): ?>
+            <div class="result">
+                <h2>Your QR Code</h2>
+                <img src="<?php echo htmlspecialchars($qrCodeUrl); ?>" alt="Generated QR Code">
+                <a href="<?php echo htmlspecialchars($qrCodeUrl); ?>" download class="download-btn">Download QR Code</a>
+            </div>
         <?php endif; ?>
     </div>
-</div>
 </body>
 </html>
